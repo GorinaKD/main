@@ -1,0 +1,658 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<title>Earn — Onboarding Stories</title>
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Inter:wght@500;600;700;800;900&display=swap" rel="stylesheet">
+<style>
+  :root{
+    --lime: #D7FF3D;
+    --lime-deep: #C4F224;
+    --ink: #111111;
+    --paper: #FFFFFF;
+    --muted: #6E7066;
+    --line: rgba(17,17,17,0.08);
+    --radius-lg: 28px;
+    --radius-md: 18px;
+    --radius-sm: 12px;
+  }
+
+  *{ box-sizing: border-box; }
+
+  html,body{
+    margin:0;
+    padding:0;
+    height:100%;
+    background: #232323;
+    font-family: 'Inter', -apple-system, BlinkMacSystemFont, sans-serif;
+    color: var(--ink);
+    -webkit-font-smoothing: antialiased;
+  }
+
+  .stage{
+    min-height:100vh;
+    display:flex;
+    align-items:center;
+    justify-content:center;
+    padding: 32px 16px;
+    gap: 40px;
+    flex-wrap: wrap;
+  }
+
+  /* ---------- Phone shell ---------- */
+  .phone{
+    position:relative;
+    width: 340px;
+    height: 700px;
+    background:#000;
+    border-radius: 46px;
+    padding: 12px;
+    box-shadow: 0 40px 80px rgba(0,0,0,0.55), 0 0 0 1px rgba(255,255,255,0.04);
+    flex-shrink:0;
+  }
+  .phone::before{
+    content:"";
+    position:absolute;
+    top:12px; left:50%;
+    transform: translateX(-50%);
+    width: 120px; height: 22px;
+    background:#000;
+    border-radius: 0 0 16px 16px;
+    z-index: 20;
+  }
+  .screen{
+    position:relative;
+    width:100%; height:100%;
+    background: var(--paper);
+    border-radius: 36px;
+    overflow:hidden;
+  }
+
+  /* ---------- Story chrome ---------- */
+  .story-progress{
+    position:absolute;
+    top: 18px; left: 14px; right: 14px;
+    display:flex;
+    gap: 5px;
+    z-index: 30;
+  }
+  .bar{
+    flex:1;
+    height: 3px;
+    border-radius: 3px;
+    background: rgba(255,255,255,0.38);
+    overflow:hidden;
+    position:relative;
+  }
+  .bar.on-dark{ background: rgba(17,17,17,0.15); }
+  .bar-fill{
+    position:absolute; top:0; left:0; bottom:0;
+    width:0%;
+    background: currentColor;
+    border-radius: 3px;
+  }
+  .story-close{
+    position:absolute;
+    top: 30px; right: 16px;
+    z-index: 30;
+    width: 26px; height: 26px;
+    border-radius: 50%;
+    background: rgba(255,255,255,0.25);
+    border: none;
+    color: #fff;
+    display:flex; align-items:center; justify-content:center;
+    cursor:pointer;
+    font-size: 13px;
+    line-height:1;
+  }
+  .story-close.on-light{ background: rgba(17,17,17,0.08); color: var(--ink); }
+
+  .tap-zone{
+    position:absolute; top:0; bottom:0; width:35%;
+    z-index: 25;
+    cursor: pointer;
+  }
+  .tap-zone.left{ left:0; }
+  .tap-zone.right{ right:0; }
+
+  /* ---------- Slides ---------- */
+  .story{
+    position:absolute; inset:0;
+    display:none;
+    flex-direction:column;
+    padding: 66px 22px 28px;
+  }
+  .story.active{ display:flex; }
+
+  .story.bg-lime{ background: var(--lime); color: var(--ink); }
+  .story.bg-white{ background: var(--paper); color: var(--ink); }
+  .story.bg-ink{ background: var(--ink); color: var(--paper); }
+
+  .eyebrow{
+    display:inline-flex;
+    align-items:center;
+    gap:6px;
+    align-self:flex-start;
+    font-size: 12px;
+    font-weight: 700;
+    letter-spacing: 0.02em;
+    padding: 6px 12px;
+    border-radius: 999px;
+    margin-bottom: 20px;
+  }
+  .eyebrow.on-lime{ background: var(--ink); color: var(--lime); }
+  .eyebrow.on-white{ background: var(--lime); color: var(--ink); }
+  .eyebrow.on-ink{ background: var(--lime); color: var(--ink); }
+
+  h1.story-title{
+    font-size: 30px;
+    line-height: 1.12;
+    font-weight: 800;
+    margin: 0 0 12px;
+    letter-spacing: -0.01em;
+  }
+  .story-sub{
+    font-size: 15px;
+    line-height: 1.5;
+    font-weight: 500;
+    margin: 0 0 22px;
+    max-width: 30ch;
+  }
+  .bg-lime .story-sub{ color: rgba(17,17,17,0.72); }
+  .bg-white .story-sub{ color: var(--muted); }
+  .bg-ink .story-sub{ color: rgba(255,255,255,0.7); }
+
+  .hl{ background: var(--ink); color: var(--lime); padding: 1px 8px; border-radius: 6px; }
+  .bg-white .hl, .bg-ink .hl{ background: var(--lime); color: var(--ink); }
+
+  .visual{
+    flex:1;
+    display:flex;
+    align-items:center;
+    justify-content:center;
+    position:relative;
+    margin: 6px 0 18px;
+  }
+
+  .foot-note{
+    font-size: 12px;
+    font-weight: 600;
+    text-align:center;
+    opacity: 0.55;
+    margin-top: auto;
+  }
+
+  /* ---------- Slide 1 visual: coins + growth ---------- */
+  .coin-stack{ position:relative; width:180px; height:180px; }
+  .coin{
+    position:absolute;
+    left:50%;
+    width:130px; height:44px;
+    background: var(--ink);
+    border-radius: 50%;
+    transform: translateX(-50%);
+    box-shadow: 0 6px 0 rgba(0,0,0,0.12);
+  }
+  .coin span{
+    position:absolute; inset:0;
+    display:flex; align-items:center; justify-content:center;
+    color: var(--lime);
+    font-weight: 800;
+    font-size: 13px;
+    letter-spacing: 0.06em;
+  }
+  .coin.c1{ bottom: 0px; }
+  .coin.c2{ bottom: 34px; opacity:0.92; }
+  .coin.c3{ bottom: 68px; opacity:0.82; }
+  .coin.c4{ bottom: 102px; opacity: 0.7; width:110px; }
+  .grow-arrow{
+    position:absolute;
+    top:-6px; right: 6px;
+    width: 46px; height:46px;
+    background: var(--ink);
+    border-radius: 50%;
+    display:flex; align-items:center; justify-content:center;
+  }
+  .grow-arrow svg{ width:22px; height:22px; }
+
+  /* ---------- Slide 2 visual: flow chips ---------- */
+  .flow{
+    display:flex;
+    flex-direction:column;
+    gap: 10px;
+    width:100%;
+  }
+  .flow-card{
+    background: var(--paper);
+    border: 1.5px solid var(--line);
+    border-radius: var(--radius-md);
+    padding: 14px 16px;
+    display:flex;
+    align-items:center;
+    gap: 12px;
+    box-shadow: 0 2px 0 rgba(17,17,17,0.03);
+  }
+  .flow-badge{
+    width: 34px; height: 34px;
+    border-radius: 10px;
+    background: var(--lime);
+    display:flex; align-items:center; justify-content:center;
+    font-weight: 800;
+    font-size: 14px;
+    flex-shrink:0;
+  }
+  .flow-txt strong{ display:block; font-size: 14px; font-weight: 800; }
+  .flow-txt span{ display:block; font-size: 12.5px; color: var(--muted); margin-top:1px; }
+  .flow-arrow-down{
+    align-self:center;
+    font-size: 16px;
+    color: var(--muted);
+    margin: -2px 0;
+  }
+
+  /* ---------- Slide 3 visual: reward ticker ---------- */
+  .ticker-card{
+    background: var(--ink);
+    color: var(--lime);
+    border-radius: var(--radius-lg);
+    padding: 26px 20px;
+    width: 100%;
+    text-align:center;
+  }
+  .ticker-label{ font-size: 12px; font-weight:700; opacity:0.7; letter-spacing:0.04em; margin-bottom: 6px; }
+  .ticker-value{ font-size: 34px; font-weight: 900; letter-spacing: -0.01em; }
+  .ticker-sub{ font-size: 12px; font-weight:600; margin-top:8px; color: rgba(215,255,61,0.75); }
+  .drip-row{
+    display:flex;
+    justify-content:center;
+    gap:6px;
+    margin-top: 16px;
+  }
+  .drip{
+    width:6px; height:6px; border-radius:50%;
+    background: var(--lime);
+    opacity:0.35;
+    animation: drip-pulse 1.4s ease-in-out infinite;
+  }
+  .drip:nth-child(2){ animation-delay:0.2s; }
+  .drip:nth-child(3){ animation-delay:0.4s; }
+  @keyframes drip-pulse{
+    0%,100%{ opacity:0.25; transform: translateY(0); }
+    50%{ opacity:1; transform: translateY(-3px); }
+  }
+
+  /* ---------- Slide 4 visual: APY wave ---------- */
+  .apy-card{
+    width:100%;
+    background: var(--paper);
+    border: 1.5px solid var(--line);
+    border-radius: var(--radius-lg);
+    padding: 18px 18px 8px;
+  }
+  .apy-top{ display:flex; justify-content:space-between; align-items:baseline; margin-bottom:6px; }
+  .apy-num{ font-size: 30px; font-weight: 900; }
+  .apy-tag{ font-size: 11px; font-weight:700; background: var(--lime); padding:3px 8px; border-radius: 999px; }
+  .apy-wave{ width:100%; height: 70px; display:block; }
+
+  /* ---------- Slide 5 visual: shield + list ---------- */
+  .shield-wrap{ display:flex; justify-content:center; margin-bottom: 18px; }
+  .shield{
+    width: 78px; height: 86px;
+    background: var(--ink);
+    clip-path: polygon(50% 0%, 100% 18%, 100% 62%, 50% 100%, 0% 62%, 0% 18%);
+    display:flex; align-items:center; justify-content:center;
+  }
+  .shield svg{ width:32px; height:32px; }
+  .reassure-list{
+    display:flex; flex-direction:column; gap:8px;
+  }
+  .reassure-item{
+    display:flex; gap:10px; align-items:flex-start;
+    background: var(--paper);
+    border-radius: var(--radius-sm);
+    padding: 11px 12px;
+  }
+  .reassure-item .dot{
+    width:18px; height:18px; border-radius:50%;
+    background: var(--ink); color: var(--lime);
+    flex-shrink:0;
+    display:flex; align-items:center; justify-content:center;
+    font-size: 11px; font-weight:800;
+    margin-top:1px;
+  }
+  .reassure-item p{ margin:0; font-size:12.5px; line-height:1.45; font-weight:600; color:var(--ink); }
+
+  /* ---------- Slide 6 CTA ---------- */
+  .cta-wrap{ display:flex; flex-direction:column; align-items:center; gap:18px; }
+  .cta-visual{
+    width: 140px; height:140px;
+    border-radius:50%;
+    background: var(--ink);
+    display:flex; align-items:center; justify-content:center;
+  }
+  .cta-visual svg{ width:60px; height:60px; }
+  .cta-btn{
+    width:100%;
+    background: var(--ink);
+    color: var(--lime);
+    border:none;
+    border-radius: 999px;
+    padding: 16px 0;
+    font-size: 15px;
+    font-weight: 800;
+    letter-spacing:0.01em;
+    cursor:pointer;
+    margin-top: auto;
+  }
+  .cta-btn:active{ transform: scale(0.98); }
+
+  /* ---------- Controls under phone ---------- */
+  .controls{
+    display:flex;
+    flex-direction:column;
+    gap:14px;
+    color:#e9e9e4;
+    font-family: 'Inter', sans-serif;
+    max-width: 300px;
+  }
+  .controls h2{ font-size:16px; margin:0 0 2px; font-weight:800; }
+  .controls p{ font-size:13px; line-height:1.55; margin:0; color:#a8a89f; }
+  .controls .keys{ font-size:12px; color:#7d7d74; margin-top:6px; }
+  .controls button{
+    align-self:flex-start;
+    background: var(--lime);
+    border:none;
+    color:#111;
+    font-weight:800;
+    font-size:13px;
+    padding:9px 16px;
+    border-radius:999px;
+    cursor:pointer;
+    margin-top:8px;
+  }
+</style>
+</head>
+<body>
+
+<div class="stage">
+
+  <div class="phone">
+    <div class="screen" id="screen">
+
+      <div class="story-progress" id="progress"></div>
+      <button class="story-close" id="closeBtn" aria-label="Close">✕</button>
+      <div class="tap-zone left" id="zoneLeft"></div>
+      <div class="tap-zone right" id="zoneRight"></div>
+
+      <!-- 1. What is Earn? -->
+      <div class="story bg-lime" data-index="0">
+        <span class="eyebrow on-lime">✨ New</span>
+        <h1 class="story-title">Make your idle crypto go to work</h1>
+        <p class="story-sub">"Earn" puts your crypto into trusted vaults so it grows quietly in the background — no trading, no charts to watch.</p>
+        <div class="visual">
+          <div class="coin-stack">
+            <div class="coin c4"><span>USDC</span></div>
+            <div class="coin c3"><span>USDC</span></div>
+            <div class="coin c2"><span>USDC</span></div>
+            <div class="coin c1"><span>USDC</span></div>
+            <div class="grow-arrow">
+              <svg viewBox="0 0 24 24" fill="none"><path d="M4 16L10 10L14 14L20 6" stroke="#D7FF3D" stroke-width="2.4" stroke-linecap="round" stroke-linejoin="round"/><path d="M14 6H20V12" stroke="#D7FF3D" stroke-width="2.4" stroke-linecap="round" stroke-linejoin="round"/></svg>
+            </div>
+          </div>
+        </div>
+        <p class="foot-note">Tap to continue →</p>
+      </div>
+
+      <!-- 2. How will I earn? -->
+      <div class="story bg-white" data-index="1">
+        <span class="eyebrow on-white">How it works</span>
+        <h1 class="story-title">Three simple <span class="hl">steps</span></h1>
+        <p class="story-sub">Your money moves through three layers. You only ever choose the first one.</p>
+        <div class="visual">
+          <div class="flow">
+            <div class="flow-card">
+              <div class="flow-badge">①</div>
+              <div class="flow-txt"><strong>Token</strong><span>The crypto you deposit, e.g. USDC</span></div>
+            </div>
+            <div class="flow-arrow-down">↓</div>
+            <div class="flow-card">
+              <div class="flow-badge">②</div>
+              <div class="flow-txt"><strong>Protocol</strong><span>The trusted service that lends it out</span></div>
+            </div>
+            <div class="flow-arrow-down">↓</div>
+            <div class="flow-card">
+              <div class="flow-badge">③</div>
+              <div class="flow-txt"><strong>Vault</strong><span>Where it sits and quietly earns interest</span></div>
+            </div>
+          </div>
+        </div>
+        <p class="foot-note">Tap to continue →</p>
+      </div>
+
+      <!-- 3. What will I earn? -->
+      <div class="story bg-lime" data-index="2">
+        <span class="eyebrow on-lime">Rewards</span>
+        <h1 class="story-title">You earn a little, all the time</h1>
+        <p class="story-sub">Interest builds up continuously and is added straight to your balance — no claiming, no waiting for payday.</p>
+        <div class="visual">
+          <div class="ticker-card">
+            <div class="ticker-label">YOUR BALANCE</div>
+            <div class="ticker-value" id="tickerValue">1,000.00 USDC</div>
+            <div class="ticker-sub">+ rewards added automatically</div>
+            <div class="drip-row"><span class="drip"></span><span class="drip"></span><span class="drip"></span></div>
+          </div>
+        </div>
+        <p class="foot-note">Tap to continue →</p>
+      </div>
+
+      <!-- 4. What is APY? -->
+      <div class="story bg-white" data-index="3">
+        <span class="eyebrow on-white">Good to know</span>
+        <h1 class="story-title">What's <span class="hl">APY</span>?</h1>
+        <p class="story-sub">APY is the yearly rate your deposit earns. It's an estimate, and it moves — up or down — as market conditions change.</p>
+        <div class="visual">
+          <div class="apy-card">
+            <div class="apy-top">
+              <div class="apy-num">4.8%</div>
+              <div class="apy-tag">current APY</div>
+            </div>
+            <svg class="apy-wave" viewBox="0 0 280 70" preserveAspectRatio="none">
+              <path d="M0,40 C20,20 40,55 60,45 C80,35 100,15 120,25 C140,35 160,10 180,20 C200,30 220,50 240,35 C255,25 265,15 280,18"
+                    fill="none" stroke="#111111" stroke-width="3" stroke-linecap="round"/>
+            </svg>
+          </div>
+        </div>
+        <p class="foot-note">APY is never fixed — think of it as a weather forecast, not a promise.</p>
+      </div>
+
+      <!-- 5. What if APY becomes low? -->
+      <div class="story bg-lime" data-index="4">
+        <span class="eyebrow on-lime">Don't worry</span>
+        <h1 class="story-title">If the rate drops, your money is still safe</h1>
+        <div class="visual">
+          <div style="width:100%">
+            <div class="shield-wrap">
+              <div class="shield">
+                <svg viewBox="0 0 24 24" fill="none"><path d="M9 12L11 14L15 9" stroke="#D7FF3D" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"/></svg>
+              </div>
+            </div>
+            <div class="reassure-list">
+              <div class="reassure-item"><span class="dot">✓</span><p>Your deposit stays exactly where it is</p></div>
+              <div class="reassure-item"><span class="dot">✓</span><p>Rewards you already earned are never taken back</p></div>
+              <div class="reassure-item"><span class="dot">✓</span><p>Only future rewards grow a bit slower</p></div>
+            </div>
+          </div>
+        </div>
+        <p class="foot-note">Tap to continue →</p>
+      </div>
+
+      <!-- 6. Ready to start? -->
+      <div class="story bg-white" data-index="5">
+        <span class="eyebrow on-white">You're set</span>
+        <h1 class="story-title">Ready to make your money earn money?</h1>
+        <p class="story-sub">Pick an amount, hit deposit, and let it grow in the background.</p>
+        <div class="visual">
+          <div class="cta-wrap">
+            <div class="cta-visual">
+              <svg viewBox="0 0 24 24" fill="none"><path d="M12 4V20M12 20L6 14M12 20L18 14" stroke="#D7FF3D" stroke-width="2.4" stroke-linecap="round" stroke-linejoin="round"/></svg>
+            </div>
+          </div>
+        </div>
+        <button class="cta-btn" id="depositBtn">Deposit</button>
+      </div>
+
+    </div>
+  </div>
+
+  <div class="controls">
+    <h2>Earn — onboarding stories</h2>
+    <p>A first-open story sequence for the Earn tab. Each card auto-advances after 5s, or tap the left / right edge of the phone to move manually — just like Instagram or Snapchat stories.</p>
+    <p class="keys">Keyboard: ← previous · → next · Esc close/restart</p>
+    <button id="restartBtn">Restart from story 1</button>
+  </div>
+
+</div>
+
+<script>
+  const stories = Array.from(document.querySelectorAll('.story'));
+  const total = stories.length;
+  const DURATION = 5000;
+  let current = 0;
+  let timer = null;
+  let startTime = null;
+  let remaining = DURATION;
+  let paused = false;
+
+  // Build progress bars
+  const progressEl = document.getElementById('progress');
+  progressEl.innerHTML = '';
+  stories.forEach((s, i) => {
+    const isDark = s.classList.contains('bg-lime');
+    const bar = document.createElement('div');
+    bar.className = 'bar' + (isDark ? '' : ' on-dark');
+    bar.style.color = isDark ? '#111111' : '#111111';
+    const fill = document.createElement('div');
+    fill.className = 'bar-fill';
+    fill.dataset.index = i;
+    bar.appendChild(fill);
+    progressEl.appendChild(bar);
+  });
+  const fills = () => Array.from(document.querySelectorAll('.bar-fill'));
+
+  function setCloseTone(){
+    const s = stories[current];
+    const btn = document.getElementById('closeBtn');
+    if (s.classList.contains('bg-white')) btn.classList.add('on-light');
+    else btn.classList.remove('on-light');
+  }
+
+  function render(){
+    stories.forEach((s, i) => s.classList.toggle('active', i === current));
+    fills().forEach((f, i) => {
+      f.style.transition = 'none';
+      f.style.width = i < current ? '100%' : '0%';
+    });
+    setCloseTone();
+    remaining = DURATION;
+    playFill();
+  }
+
+  function playFill(){
+    clearTimeout(timer);
+    const fill = fills()[current];
+    requestAnimationFrame(() => {
+      fill.style.transition = `width ${remaining}ms linear`;
+      fill.style.width = '100%';
+    });
+    startTime = Date.now();
+    timer = setTimeout(next, remaining);
+  }
+
+  function pauseFill(){
+    if (paused) return;
+    paused = true;
+    clearTimeout(timer);
+    const fill = fills()[current];
+    const computed = getComputedStyle(fill).width;
+    fill.style.transition = 'none';
+    fill.style.width = computed;
+    remaining = remaining - (Date.now() - startTime);
+  }
+
+  function resumeFill(){
+    if (!paused) return;
+    paused = false;
+    playFill();
+  }
+
+  function next(){
+    if (current < total - 1){
+      current++;
+      render();
+    } else {
+      current = 0;
+      render();
+    }
+  }
+
+  function prev(){
+    current = current > 0 ? current - 1 : 0;
+    render();
+  }
+
+  document.getElementById('zoneRight').addEventListener('click', next);
+  document.getElementById('zoneLeft').addEventListener('click', prev);
+
+  ['zoneRight','zoneLeft'].forEach(id => {
+    const el = document.getElementById(id);
+    el.addEventListener('mousedown', pauseFill);
+    el.addEventListener('mouseup', resumeFill);
+    el.addEventListener('touchstart', pauseFill);
+    el.addEventListener('touchend', resumeFill);
+  });
+
+  document.getElementById('closeBtn').addEventListener('click', () => {
+    current = 0;
+    render();
+  });
+
+  document.getElementById('restartBtn').addEventListener('click', () => {
+    current = 0;
+    render();
+  });
+
+  document.getElementById('depositBtn').addEventListener('click', () => {
+    const btn = document.getElementById('depositBtn');
+    btn.textContent = 'Nice — deposit flow starts here ✓';
+    setTimeout(() => btn.textContent = 'Deposit', 1800);
+  });
+
+  document.addEventListener('keydown', (e) => {
+    if (e.key === 'ArrowRight') next();
+    if (e.key === 'ArrowLeft') prev();
+    if (e.key === 'Escape'){ current = 0; render(); }
+  });
+
+  // Ticker count-up animation on slide 3
+  function animateTicker(){
+    const el = document.getElementById('tickerValue');
+    if (!el) return;
+    let val = 1000.00;
+    clearInterval(window.__tickerInt);
+    el.textContent = val.toFixed(2) + ' USDC';
+    window.__tickerInt = setInterval(() => {
+      if (current !== 2) return;
+      val += 0.0031;
+      el.textContent = val.toFixed(4).slice(0, -2) + ' USDC';
+    }, 120);
+  }
+  animateTicker();
+
+  render();
+</script>
+
+</body>
+</html>
