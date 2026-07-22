@@ -1,0 +1,1015 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=1">
+<title>Card statistics — Prototypes</title>
+<style>
+  :root{
+    --bg:#ffffff;
+    --page-bg:#eceef1;
+    --surface:#f5f5f7;
+    --surface-2:#ebebef;
+    --text:#0b0b0c;
+    --text-secondary:#8e8e93;
+    --text-tertiary:#c2c2c7;
+    --divider:#e6e6ea;
+    --black:#0b0b0c;
+    --red:#ff3b30;
+    --green:#34c759;
+    --orange:#ff9500;
+    --radius-lg:20px;
+    --radius-md:16px;
+    --radius-sm:12px;
+    --font:-apple-system,BlinkMacSystemFont,"SF Pro Display","Segoe UI",Roboto,Helvetica,Arial,sans-serif;
+  }
+  *{box-sizing:border-box; -webkit-tap-highlight-color:transparent;}
+  html,body{margin:0;padding:0;}
+  body{
+    font-family:var(--font); background:var(--page-bg); color:var(--text);
+    min-height:100vh; display:flex; flex-direction:column; align-items:center;
+    padding:32px 16px 60px;
+  }
+  .intro{max-width:390px; width:100%; margin-bottom:20px;}
+  .intro .eyebrow{font-size:12px; font-weight:600; letter-spacing:.04em; text-transform:uppercase; color:var(--text-secondary); margin:0 0 6px;}
+  .intro h1{font-size:20px; font-weight:700; margin:0 0 6px; letter-spacing:-.01em;}
+  .intro p{font-size:13.5px; line-height:1.5; color:var(--text-secondary); margin:0 0 4px;}
+  .intro .hint{font-size:12.5px; color:var(--text-tertiary); margin-top:8px;}
+
+  .phone{
+    width:390px; max-width:100%; height:844px; max-height:88vh;
+    background:var(--bg); border-radius:44px; border:10px solid #0b0b0c;
+    box-shadow:0 30px 60px -20px rgba(0,0,0,.35), 0 4px 16px rgba(0,0,0,.08);
+    overflow:hidden; position:relative; display:flex; flex-direction:column;
+  }
+  .dynamic-island{position:absolute; top:10px; left:50%; transform:translateX(-50%); width:100px; height:26px; background:#0b0b0c; border-radius:20px; z-index:30;}
+  .status-bar{display:flex; justify-content:space-between; align-items:center; padding:16px 26px 4px; font-size:14px; font-weight:600; flex-shrink:0; position:relative; z-index:20; background:var(--bg);}
+  .status-icons{display:flex; align-items:center; gap:5px;}
+
+  .screen-stack{flex:1; position:relative; min-height:0; overflow:hidden;}
+  .screen{position:absolute; inset:0; display:none; flex-direction:column; background:var(--bg);}
+  .screen.active{display:flex;}
+
+  .nav-bar{display:flex; align-items:center; justify-content:space-between; padding:6px 16px 10px; flex-shrink:0;}
+  .nav-bar.centered{justify-content:flex-start; position:relative;}
+  .nav-bar.centered .nav-title-center{position:absolute; left:0; right:0; text-align:center; font-size:15px; font-weight:600; pointer-events:none;}
+  .nav-btn{width:36px; height:36px; border-radius:50%; border:none; background:transparent; display:flex; align-items:center; justify-content:center; color:var(--text); cursor:pointer; flex-shrink:0;}
+  .nav-btn:focus-visible{outline:2px solid var(--black); outline-offset:2px;}
+  .nav-chip{padding:7px 14px; background:var(--surface); border-radius:20px; font-size:13px; font-weight:600; color:var(--text);}
+  .help-btn{width:28px; height:28px; border-radius:50%; border:1.5px solid var(--divider); display:flex; align-items:center; justify-content:center; font-size:13px; font-weight:700; color:var(--text-secondary); background:none; cursor:pointer; flex-shrink:0;}
+  .nav-spacer{width:36px; flex-shrink:0;}
+
+  .content{flex:1; overflow-y:auto; padding:6px 20px 32px; -webkit-overflow-scrolling:touch;}
+  .content::-webkit-scrollbar{display:none;}
+
+  h2.page-title{font-size:24px; font-weight:700; letter-spacing:-.02em; margin:6px 0 4px;}
+  p.page-sub{font-size:13.5px; color:var(--text-secondary); margin:0 0 18px; line-height:1.4;}
+
+  /* menu rows (Manage screen + Hub screen) */
+  .menu-group{background:var(--surface); border-radius:var(--radius-md); overflow:hidden; margin-bottom:20px;}
+  .menu-row{display:flex; align-items:center; gap:12px; padding:13px 16px; cursor:pointer; background:none; border:none; width:100%; text-align:left; font-family:inherit; color:inherit;}
+  .menu-row + .menu-row{border-top:1px solid var(--divider);}
+  .menu-row .row-icon{width:22px; height:22px; display:flex; align-items:center; justify-content:center; color:var(--text); flex-shrink:0;}
+  .menu-row .row-label{flex:1; font-size:15px; font-weight:500; display:flex; align-items:center;}
+  .menu-row .row-meta{font-size:13px; color:var(--text-secondary); margin-right:2px; white-space:nowrap;}
+  .menu-row .row-chevron{color:var(--text-tertiary); flex-shrink:0;}
+  .menu-row.danger .row-label, .menu-row.danger .row-icon{color:var(--red);}
+  .new-tag{font-size:10px; font-weight:700; color:#fff; background:var(--black); padding:2px 7px; border-radius:8px; margin-left:8px; letter-spacing:.02em;}
+
+  /* hub rows (bigger, with icon circle + data preview) */
+  .hub-row .row-icon-circle{width:40px; height:40px; border-radius:50%; background:var(--surface-2); display:flex; align-items:center; justify-content:center; color:var(--text); flex-shrink:0;}
+  .hub-row .row-icon-circle svg{width:19px; height:19px;}
+  .hub-row .row-label-wrap{flex:1; min-width:0;}
+  .hub-row .row-label-main{font-size:15px; font-weight:600;}
+  .hub-row .row-label-sub{font-size:12.5px; color:var(--text-secondary); margin-top:1px;}
+  .hub-row .row-meta{font-size:14px; font-weight:600; color:var(--text);}
+
+  /* period selector (reused across sub-screens) */
+  .period-selector{display:flex; gap:6px; background:var(--surface); border-radius:14px; padding:4px; margin-bottom:22px;}
+  .period-pill{flex:1; border:none; background:transparent; padding:8px 0; border-radius:11px; font-size:13px; font-weight:600; color:var(--text-secondary); cursor:pointer; transition:background .2s ease, color .2s ease;}
+  .period-pill.active{background:var(--black); color:#fff;}
+  .period-pill:focus-visible{outline:2px solid var(--black); outline-offset:2px;}
+
+  /* hero */
+  .hero{margin-bottom:6px;}
+  .hero-label{font-size:13.5px; color:var(--text-secondary); font-weight:500; margin-bottom:4px;}
+  .hero-value{font-size:36px; font-weight:700; letter-spacing:-.02em; line-height:1.1; margin-bottom:10px;}
+  .delta-badge{display:inline-flex; align-items:center; gap:5px; padding:5px 10px 5px 8px; border-radius:20px; font-size:12.5px; font-weight:600;}
+  .delta-badge.up{background:rgba(255,59,48,.1); color:var(--red);}
+  .delta-badge.down{background:rgba(52,199,89,.1); color:var(--green);}
+  .delta-badge.flat{background:var(--surface); color:var(--text-secondary);}
+  .delta-badge svg{width:11px; height:11px;}
+
+  /* chart */
+  .chart-card{margin:22px 0 24px;}
+  .chart-bars{display:flex; align-items:flex-end; gap:7px; height:110px;}
+  .bar-col{flex:1; height:100%; display:flex; align-items:flex-end; justify-content:center;}
+  .bar{width:70%; max-width:26px; min-height:6px; border-radius:6px 6px 3px 3px; background:var(--surface-2); transition:height .5s cubic-bezier(.2,.8,.2,1);}
+  .bar.peak{background:var(--black);}
+  .chart-labels{display:flex; gap:7px; margin-top:8px;}
+  .chart-labels span{flex:1; text-align:center; font-size:10.5px; color:var(--text-tertiary); font-weight:500;}
+  .chart-caption{margin-top:12px; font-size:12.5px; color:var(--text-secondary);}
+  .chart-caption strong{color:var(--text); font-weight:600;}
+
+  /* stat cards */
+  .stat-row{display:flex; gap:10px; margin-bottom:8px;}
+  .stat-card{flex:1; background:var(--surface); border-radius:var(--radius-md); padding:14px;}
+  .stat-icon-wrap{width:28px; height:28px; border-radius:50%; display:flex; align-items:center; justify-content:center; margin-bottom:10px;}
+  .stat-icon-wrap svg{width:15px; height:15px;}
+  .stat-icon-wrap.low{background:rgba(52,199,89,.12); color:var(--green);}
+  .stat-icon-wrap.high{background:rgba(255,59,48,.12); color:var(--red);}
+  .stat-label{font-size:12px; color:var(--text-secondary); font-weight:500; margin-bottom:3px;}
+  .stat-value{font-size:18px; font-weight:700; letter-spacing:-.01em; margin-bottom:2px;}
+  .stat-meta{font-size:12px; color:var(--text-secondary);}
+
+  .section-title{font-size:16px; font-weight:700; margin:24px 0 12px; letter-spacing:-.01em;}
+  .section-title:first-child{margin-top:0;}
+
+  /* purchase featured card */
+  .purchase-card{display:flex; align-items:center; gap:12px; background:var(--surface); border-radius:var(--radius-md); padding:16px; margin-bottom:6px;}
+  .purchase-icon{width:48px; height:48px; border-radius:50%; display:flex; align-items:center; justify-content:center; flex-shrink:0;}
+  .purchase-icon svg{width:22px; height:22px;}
+  .purchase-info{flex:1; min-width:0;}
+  .purchase-eyebrow{font-size:11.5px; color:var(--text-secondary); font-weight:600; text-transform:uppercase; letter-spacing:.03em; margin-bottom:3px;}
+  .purchase-name{font-size:16px; font-weight:700; margin-bottom:2px;}
+  .purchase-meta{font-size:12.5px; color:var(--text-secondary);}
+  .purchase-amount{font-size:18px; font-weight:700; white-space:nowrap;}
+
+  /* ranked list */
+  .rank-list{display:flex; flex-direction:column;}
+  .rank-row{display:flex; align-items:center; gap:12px; padding:12px 0;}
+  .rank-row + .rank-row{border-top:1px solid var(--divider);}
+  .rank-badge{width:24px; height:24px; border-radius:50%; background:var(--surface); display:flex; align-items:center; justify-content:center; font-size:11.5px; font-weight:700; color:var(--text-secondary); flex-shrink:0;}
+  .rank-row:first-child .rank-badge{background:var(--black); color:#fff;}
+  .rank-icon{width:36px; height:36px; border-radius:50%; display:flex; align-items:center; justify-content:center; flex-shrink:0;}
+  .rank-icon svg{width:17px; height:17px;}
+  .rank-info{flex:1; min-width:0;}
+  .rank-name{font-size:14.5px; font-weight:600;}
+  .rank-meta{font-size:12px; color:var(--text-secondary);}
+  .rank-amount{font-size:14.5px; font-weight:700; white-space:nowrap;}
+
+  /* donut */
+  .donut-wrap{display:flex; align-items:center; gap:22px; margin-bottom:26px;}
+  .donut-graphic{position:relative; width:132px; height:132px; flex-shrink:0;}
+  .donut-svg{width:132px; height:132px; display:block;}
+  .donut-center{position:absolute; inset:0; display:flex; flex-direction:column; align-items:center; justify-content:center; pointer-events:none;}
+  .donut-center .dc-label{font-size:11px; color:var(--text-secondary); font-weight:500;}
+  .donut-center .dc-value{font-size:16px; font-weight:700; letter-spacing:-.01em;}
+  .donut-legend{flex:1; display:flex; flex-direction:column; gap:8px; min-width:0;}
+  .legend-item{display:flex; align-items:center; gap:8px; font-size:12.5px;}
+  .legend-dot{width:8px; height:8px; border-radius:50%; flex-shrink:0;}
+  .legend-name{flex:1; color:var(--text); font-weight:500; white-space:nowrap; overflow:hidden; text-overflow:ellipsis;}
+  .legend-pct{color:var(--text-secondary); font-weight:600;}
+
+  /* category rows */
+  .category-list{display:flex; flex-direction:column; gap:14px; margin-bottom:8px;}
+  .cat-row{display:flex; align-items:center; gap:12px;}
+  .cat-icon{width:36px; height:36px; border-radius:50%; display:flex; align-items:center; justify-content:center; flex-shrink:0;}
+  .cat-icon svg{width:17px; height:17px;}
+  .cat-info{flex:1; min-width:0;}
+  .cat-top{display:flex; justify-content:space-between; align-items:flex-start; margin-bottom:6px; gap:8px;}
+  .cat-name{font-size:14.5px; font-weight:600;}
+  .cat-values{display:flex; flex-direction:column; align-items:flex-end;}
+  .cat-amount{font-size:14px; font-weight:600; white-space:nowrap;}
+  .cat-pct{font-size:11px; color:var(--text-secondary); font-weight:500;}
+  .cat-bar-track{height:6px; border-radius:4px; background:var(--surface); overflow:hidden;}
+  .cat-bar-fill{height:100%; border-radius:4px; transition:width .5s cubic-bezier(.2,.8,.2,1);}
+
+  .home-indicator{flex-shrink:0; display:flex; justify-content:center; padding:8px 0 6px; position:relative; z-index:20; background:var(--bg);}
+  .home-indicator .bar{width:120px; height:4px; border-radius:3px; background:var(--black); opacity:.85; min-height:0;}
+
+  @media (prefers-reduced-motion: reduce){
+    .bar,.cat-bar-fill,.screen{transition:none !important;}
+  }
+  @media (max-width:430px){
+    body{padding:0;}
+    .intro{padding:20px 20px 0; max-width:none;}
+    .phone{width:100%; height:100vh; max-height:none; border-radius:0; border:none; box-shadow:none;}
+    .dynamic-island{display:none;}
+  }
+
+  /* concept switcher */
+  .switcher-wrap{max-width:390px; width:100%; margin-bottom:22px;}
+  .concept-switcher{display:flex; gap:6px; background:#fff; border:1px solid var(--divider); border-radius:14px; padding:4px; box-shadow:0 1px 2px rgba(0,0,0,.04);}
+  .concept-tab{flex:1; border:none; background:transparent; padding:11px 6px; border-radius:11px; font-size:13.5px; font-weight:600; color:var(--text-secondary); cursor:pointer; transition:background .2s ease, color .2s ease;}
+  .concept-tab.active{background:var(--black); color:#fff;}
+  .concept-tab:focus-visible{outline:2px solid var(--black); outline-offset:2px;}
+
+  .concept-panel{display:none; flex-direction:column; align-items:center; width:100%;}
+  .concept-panel.active{display:flex;}
+
+  /* fade-in used by concept 1 on period change */
+  .fade{animation:fadeIn .35s ease both;}
+  @keyframes fadeIn{from{opacity:0; transform:translateY(4px);} to{opacity:1; transform:translateY(0);}}
+
+  @media (prefers-reduced-motion: reduce){
+    .fade{animation:none;}
+  }
+  @media (max-width:430px){
+    .switcher-wrap{padding:0 20px;}
+  }
+
+</style>
+</head>
+<body>
+
+  <div class="switcher-wrap">
+    <div class="concept-switcher" role="tablist" aria-label="Prototype concept">
+      <button class="concept-tab active" data-concept="1" role="tab" aria-selected="true">Concept 1 · Single screen</button>
+      <button class="concept-tab" data-concept="2" role="tab" aria-selected="false">Concept 2 · Separate screens</button>
+    </div>
+  </div>
+
+  <div id="concept1-panel" class="concept-panel active">
+    <div class="intro">
+    <p class="eyebrow">Utorg · Card · Concept 1</p>
+    <h1>Card statistics — single screen</h1>
+    <p>Everything — totals, min/max, biggest purchase and category breakdown — lives on one scrollable screen, all driven by the period filter at the top.</p>
+  </div>
+
+  <div class="phone">
+    <div class="dynamic-island"></div>
+    <div class="status-bar">
+      <span>9:41</span>
+      <span class="status-icons">
+        <svg width="17" height="12" viewBox="0 0 17 12" fill="none"><path d="M1 9L3 7M1 9V3M6 9V5M6 9L8 7M11 9V1M11 9L13 7M16 9V0" stroke="currentColor" stroke-width="1.4" stroke-linecap="round"/></svg>
+        <svg width="24" height="12" viewBox="0 0 24 12" fill="none"><rect x="1" y="1" width="20" height="10" rx="2.5" stroke="currentColor" stroke-width="1.2"/><rect x="2.5" y="2.5" width="16" height="7" rx="1.2" fill="currentColor"/><rect x="22" y="4" width="1.6" height="4" rx="0.6" fill="currentColor"/></svg>
+      </span>
+    </div>
+    <div class="nav-bar">
+      <button class="nav-btn" aria-label="Back">
+        <svg width="20" height="20" viewBox="0 0 24 24" fill="none"><path d="M15 18l-6-6 6-6" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/></svg>
+      </button>
+      <div class="nav-chip">EUR · 4242</div>
+      <button class="help-btn" aria-label="Help">?</button>
+    </div>
+
+    <div class="content">
+      <h2 class="page-title">Card statistics</h2>
+      <p class="page-sub">A quick read on how your card is being used, and where the money goes.</p>
+
+      <div class="period-selector" role="tablist" aria-label="Time period">
+        <!-- filled by JS -->
+      </div>
+
+      <div id="statsBody">
+        <div class="hero">
+          <div class="hero-label" id="heroLabel">Spent this month</div>
+          <div class="hero-value" id="heroValue">0.00 €</div>
+          <div class="delta-badge" id="deltaBadge"></div>
+        </div>
+
+        <div class="chart-card">
+          <div class="chart-bars" id="chartBars"></div>
+          <div class="chart-labels" id="chartLabels"></div>
+          <div class="chart-caption" id="chartCaption"></div>
+        </div>
+
+        <div class="stat-row">
+          <div class="stat-card">
+            <div class="stat-icon-wrap low">
+              <svg viewBox="0 0 24 24" fill="none"><path d="M12 5v14M19 12l-7 7-7-7" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/></svg>
+            </div>
+            <div class="stat-label">Lowest transaction</div>
+            <div class="stat-value" id="minValue">0.00 €</div>
+            <div class="stat-meta" id="minMeta">—</div>
+          </div>
+          <div class="stat-card">
+            <div class="stat-icon-wrap high">
+              <svg viewBox="0 0 24 24" fill="none"><path d="M12 19V5M5 12l7-7 7 7" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/></svg>
+            </div>
+            <div class="stat-label">Highest transaction</div>
+            <div class="stat-value" id="maxValue">0.00 €</div>
+            <div class="stat-meta" id="maxMeta">—</div>
+          </div>
+        </div>
+
+        <div class="section-title">Biggest purchase</div>
+        <div class="purchase-card" id="purchaseCard"></div>
+
+        <div class="section-title">Spending by category</div>
+        <div class="category-list" id="categoryList"></div>
+      </div>
+    </div>
+
+    <div class="home-indicator"><div class="bar"></div></div>
+  </div>
+  </div>
+
+  <div id="concept2-panel" class="concept-panel">
+    <div class="intro">
+    <p class="eyebrow">Utorg · Card · Concept 2</p>
+    <h1>Card statistics — separate screens</h1>
+    <p>Reached from the card's Manage menu. A hub screen fans out into three focused screens — Spending, Biggest purchases, Categories — each with its own period filter.</p>
+    <p class="hint">Tap through: Manage → Card statistics → Spending / Biggest purchases / Categories.</p>
+  </div>
+
+  <div class="phone">
+    <div class="dynamic-island"></div>
+    <div class="status-bar">
+      <span>9:41</span>
+      <span class="status-icons">
+        <svg width="17" height="12" viewBox="0 0 17 12" fill="none"><path d="M1 9L3 7M1 9V3M6 9V5M6 9L8 7M11 9V1M11 9L13 7M16 9V0" stroke="currentColor" stroke-width="1.4" stroke-linecap="round"/></svg>
+        <svg width="24" height="12" viewBox="0 0 24 12" fill="none"><rect x="1" y="1" width="20" height="10" rx="2.5" stroke="currentColor" stroke-width="1.2"/><rect x="2.5" y="2.5" width="16" height="7" rx="1.2" fill="currentColor"/><rect x="22" y="4" width="1.6" height="4" rx="0.6" fill="currentColor"/></svg>
+      </span>
+    </div>
+
+    <div class="screen-stack" id="screenStack">
+
+      <!-- SCREEN: Manage (entry point, matches existing card menu) -->
+      <section class="screen active" id="screen-manage">
+        <div class="nav-bar centered">
+          <button class="nav-btn" aria-label="Back">
+            <svg width="20" height="20" viewBox="0 0 24 24" fill="none"><path d="M15 18l-6-6 6-6" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/></svg>
+          </button>
+          <span class="nav-title-center">Manage</span>
+        </div>
+        <div class="content">
+          <div class="menu-group">
+            <button class="menu-row"><span class="row-icon" data-icon="card"></span><span class="row-label">Order digital card</span><span class="row-meta">2/3</span><span class="row-chevron">›</span></button>
+            <button class="menu-row"><span class="row-icon" data-icon="card"></span><span class="row-label">Order physical card</span><span class="row-chevron">›</span></button>
+            <button class="menu-row"><span class="row-icon" data-icon="arrowUpRight"></span><span class="row-label">Withdraw money</span><span class="row-chevron">›</span></button>
+          </div>
+          <div class="menu-group">
+            <button class="menu-row"><span class="row-icon" data-icon="pencil"></span><span class="row-label">Rename card</span><span class="row-chevron">›</span></button>
+            <button class="menu-row"><span class="row-icon" data-icon="eyeOff"></span><span class="row-label">Hide card</span><span class="row-chevron">›</span></button>
+            <button class="menu-row"><span class="row-icon" data-icon="snowflake"></span><span class="row-label">Freeze card</span><span class="row-chevron">›</span></button>
+            <button class="menu-row"><span class="row-icon" data-icon="lock"></span><span class="row-label">Set up card PIN</span><span class="row-chevron">›</span></button>
+          </div>
+          <div class="menu-group">
+            <button class="menu-row" id="rowToStats"><span class="row-icon" data-icon="chartbar"></span><span class="row-label">Card statistics<span class="new-tag">New</span></span><span class="row-chevron">›</span></button>
+            <button class="menu-row"><span class="row-icon" data-icon="doc"></span><span class="row-label">Bank statement</span><span class="row-chevron">›</span></button>
+            <button class="menu-row"><span class="row-icon" data-icon="sliders"></span><span class="row-label">Spending limits</span><span class="row-chevron">›</span></button>
+            <button class="menu-row"><span class="row-icon" data-icon="percent"></span><span class="row-label">Fees</span><span class="row-chevron">›</span></button>
+            <button class="menu-row"><span class="row-icon" data-icon="doc"></span><span class="row-label">Terms &amp; conditions</span><span class="row-chevron">›</span></button>
+          </div>
+          <div class="menu-group">
+            <button class="menu-row danger"><span class="row-icon" data-icon="trash"></span><span class="row-label">Delete card</span></button>
+          </div>
+        </div>
+      </section>
+
+      <!-- SCREEN: Hub -->
+      <section class="screen" id="screen-hub">
+        <div class="nav-bar">
+          <button class="nav-btn" data-back="screen-manage" aria-label="Back">
+            <svg width="20" height="20" viewBox="0 0 24 24" fill="none"><path d="M15 18l-6-6 6-6" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/></svg>
+          </button>
+          <div class="nav-chip">EUR · 4242</div>
+          <button class="help-btn" aria-label="Help">?</button>
+        </div>
+        <div class="content">
+          <h2 class="page-title">Card statistics</h2>
+          <p class="page-sub">A snapshot of your card activity. Pick a view to see the full breakdown.</p>
+          <div class="menu-group">
+            <button class="menu-row hub-row" id="rowToSpending">
+              <span class="row-icon-circle" data-icon="chartbar"></span>
+              <span class="row-label-wrap"><div class="row-label-main">Spending</div><div class="row-label-sub">Totals over time</div></span>
+              <span class="row-meta" id="hubSpendingMeta">—</span>
+              <span class="row-chevron">›</span>
+            </button>
+            <button class="menu-row hub-row" id="rowToBiggest">
+              <span class="row-icon-circle" data-icon="trending"></span>
+              <span class="row-label-wrap"><div class="row-label-main">Biggest purchases</div><div class="row-label-sub">Your largest transactions</div></span>
+              <span class="row-meta" id="hubBiggestMeta">—</span>
+              <span class="row-chevron">›</span>
+            </button>
+            <button class="menu-row hub-row" id="rowToCategories">
+              <span class="row-icon-circle" data-icon="donut"></span>
+              <span class="row-label-wrap"><div class="row-label-main">Categories</div><div class="row-label-sub">Where your money goes</div></span>
+              <span class="row-meta" id="hubCategoriesMeta">—</span>
+              <span class="row-chevron">›</span>
+            </button>
+          </div>
+        </div>
+      </section>
+
+      <!-- SCREEN: Spending -->
+      <section class="screen" id="screen-spending">
+        <div class="nav-bar">
+          <button class="nav-btn" data-back="screen-hub" aria-label="Back">
+            <svg width="20" height="20" viewBox="0 0 24 24" fill="none"><path d="M15 18l-6-6 6-6" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/></svg>
+          </button>
+          <div class="nav-chip">EUR · 4242</div>
+          <button class="help-btn" aria-label="Help">?</button>
+        </div>
+        <div class="content">
+          <h2 class="page-title">Spending</h2>
+          <p class="page-sub">How much you've spent on this card, at a glance.</p>
+          <div class="period-selector"></div>
+          <div class="hero">
+            <div class="hero-label" id="sp-heroLabel">Spent this month</div>
+            <div class="hero-value" id="sp-heroValue">0.00 €</div>
+            <div class="delta-badge" id="sp-deltaBadge"></div>
+          </div>
+          <div class="chart-card">
+            <div class="chart-bars" id="sp-chartBars"></div>
+            <div class="chart-labels" id="sp-chartLabels"></div>
+            <div class="chart-caption" id="sp-chartCaption"></div>
+          </div>
+          <div class="stat-row">
+            <div class="stat-card">
+              <div class="stat-icon-wrap low"><svg viewBox="0 0 24 24" fill="none"><path d="M12 5v14M19 12l-7 7-7-7" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/></svg></div>
+              <div class="stat-label">Lowest transaction</div>
+              <div class="stat-value" id="sp-minValue">0.00 €</div>
+              <div class="stat-meta" id="sp-minMeta">—</div>
+            </div>
+            <div class="stat-card">
+              <div class="stat-icon-wrap high"><svg viewBox="0 0 24 24" fill="none"><path d="M12 19V5M5 12l7-7 7 7" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/></svg></div>
+              <div class="stat-label">Highest transaction</div>
+              <div class="stat-value" id="sp-maxValue">0.00 €</div>
+              <div class="stat-meta" id="sp-maxMeta">—</div>
+            </div>
+          </div>
+        </div>
+      </section>
+
+      <!-- SCREEN: Biggest purchases -->
+      <section class="screen" id="screen-biggest">
+        <div class="nav-bar">
+          <button class="nav-btn" data-back="screen-hub" aria-label="Back">
+            <svg width="20" height="20" viewBox="0 0 24 24" fill="none"><path d="M15 18l-6-6 6-6" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/></svg>
+          </button>
+          <div class="nav-chip">EUR · 4242</div>
+          <button class="help-btn" aria-label="Help">?</button>
+        </div>
+        <div class="content">
+          <h2 class="page-title">Biggest purchases</h2>
+          <p class="page-sub">Your largest single transactions, ranked.</p>
+          <div class="period-selector"></div>
+          <div class="purchase-card" id="bp-featured"></div>
+          <div class="section-title">Top purchases</div>
+          <div class="rank-list" id="bp-rankList"></div>
+        </div>
+      </section>
+
+      <!-- SCREEN: Categories -->
+      <section class="screen" id="screen-categories">
+        <div class="nav-bar">
+          <button class="nav-btn" data-back="screen-hub" aria-label="Back">
+            <svg width="20" height="20" viewBox="0 0 24 24" fill="none"><path d="M15 18l-6-6 6-6" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/></svg>
+          </button>
+          <div class="nav-chip">EUR · 4242</div>
+          <button class="help-btn" aria-label="Help">?</button>
+        </div>
+        <div class="content">
+          <h2 class="page-title">Categories</h2>
+          <p class="page-sub">Where your money's going, broken down.</p>
+          <div class="period-selector"></div>
+          <div class="donut-wrap">
+            <div class="donut-graphic">
+              <svg class="donut-svg" viewBox="0 0 120 120" id="cat-donut"></svg>
+              <div class="donut-center"><div class="dc-label" id="cat-donutLabel">This month</div><div class="dc-value" id="cat-donutValue">0.00 €</div></div>
+            </div>
+            <div class="donut-legend" id="cat-legend"></div>
+          </div>
+          <div class="category-list" id="cat-list"></div>
+        </div>
+      </section>
+
+    </div>
+
+    <div class="home-indicator"><div class="bar"></div></div>
+  </div>
+  </div>
+
+<script>
+(function(){
+const root = document.getElementById('concept1-panel');
+  const ICONS = {
+    bag:'<path d="M6 7h12l1 13H5L6 7z" stroke="currentColor" stroke-width="1.7" stroke-linejoin="round"/><path d="M9 7a3 3 0 0 1 6 0" stroke="currentColor" stroke-width="1.7"/>',
+    plane:'<path d="M22 2L11 13" stroke="currentColor" stroke-width="1.7" stroke-linecap="round" stroke-linejoin="round"/><path d="M22 2l-7 20-4-9-9-4 20-7z" stroke="currentColor" stroke-width="1.7" stroke-linejoin="round"/>',
+    basket:'<path d="M4 9h16l-1.5 10a2 2 0 0 1-2 2h-9a2 2 0 0 1-2-2L4 9z" stroke="currentColor" stroke-width="1.7" stroke-linejoin="round"/><path d="M8 9V6a4 4 0 0 1 8 0v3" stroke="currentColor" stroke-width="1.7"/>',
+    cup:'<path d="M4 8h13v6a5 5 0 0 1-5 5H9a5 5 0 0 1-5-5V8z" stroke="currentColor" stroke-width="1.7" stroke-linejoin="round"/><path d="M17 9h1.5a2.5 2.5 0 0 1 0 5H17" stroke="currentColor" stroke-width="1.7"/>',
+    receipt:'<path d="M6 3h12v18l-3-2-3 2-3-2-3 2V3z" stroke="currentColor" stroke-width="1.7" stroke-linejoin="round"/><path d="M9 8h6M9 12h6" stroke="currentColor" stroke-width="1.7" stroke-linecap="round"/>',
+    car:'<path d="M4 16V9l2-4h12l2 4v7" stroke="currentColor" stroke-width="1.7" stroke-linejoin="round"/><path d="M4 16h16" stroke="currentColor" stroke-width="1.7"/><circle cx="7.5" cy="17.5" r="1.5" stroke="currentColor" stroke-width="1.5"/><circle cx="16.5" cy="17.5" r="1.5" stroke="currentColor" stroke-width="1.5"/>',
+    film:'<circle cx="12" cy="12" r="9" stroke="currentColor" stroke-width="1.7"/><path d="M10 8.5l6 3.5-6 3.5z" fill="currentColor" stroke="none"/>',
+    repeat:'<path d="M17 2l4 4-4 4" stroke="currentColor" stroke-width="1.7" stroke-linecap="round" stroke-linejoin="round"/><path d="M3 11V9a4 4 0 0 1 4-4h14" stroke="currentColor" stroke-width="1.7" stroke-linecap="round"/><path d="M7 22l-4-4 4-4" stroke="currentColor" stroke-width="1.7" stroke-linecap="round" stroke-linejoin="round"/><path d="M21 13v2a4 4 0 0 1-4 4H3" stroke="currentColor" stroke-width="1.7" stroke-linecap="round"/>',
+    dots:'<circle cx="5" cy="12" r="1.6" fill="currentColor"/><circle cx="12" cy="12" r="1.6" fill="currentColor"/><circle cx="19" cy="12" r="1.6" fill="currentColor"/>'
+  };
+  const CAT_META = {
+    'Shopping':{color:'#6c5ce7', icon:'bag'},
+    'Travel':{color:'#5b8def', icon:'plane'},
+    'Groceries':{color:'#2fbf9f', icon:'basket'},
+    'Dining':{color:'#ff6b6b', icon:'cup'},
+    'Bills':{color:'#64748b', icon:'receipt'},
+    'Transport':{color:'#00b4d8', icon:'car'},
+    'Entertainment':{color:'#f472b6', icon:'film'},
+    'Subscriptions':{color:'#ffb020', icon:'repeat'},
+    'Other':{color:'#b0b0b8', icon:'dots'}
+  };
+
+  const DATA = {
+    day:{
+      rangeLabel:'today', compareLabel:'vs yesterday', total:187.40, deltaPct:8, deltaDir:'up',
+      min:{value:3.20, merchant:'Costa Coffee'},
+      max:{value:120.00, merchant:'Zara', category:'Shopping', date:'Today, 15:42'},
+      chart:{labels:['6am','9am','12pm','3pm','6pm','9pm'], bars:[5,10,15,55,100,20], peak:4},
+      categories:[
+        {name:'Shopping', value:120.00, pct:64},
+        {name:'Dining', value:42.10, pct:22},
+        {name:'Transport', value:18.30, pct:10},
+        {name:'Other', value:7.00, pct:4}
+      ]
+    },
+    week:{
+      rangeLabel:'this week', compareLabel:'vs last week', total:842.90, deltaPct:12, deltaDir:'up',
+      min:{value:2.50, merchant:'Vending machine'},
+      max:{value:245.00, merchant:'Delta Airlines', category:'Travel', date:'Tue, 09:12'},
+      chart:{labels:['Mon','Tue','Wed','Thu','Fri','Sat','Sun'], bars:[30,100,20,45,60,80,25], peak:1},
+      categories:[
+        {name:'Travel', value:245.00, pct:29},
+        {name:'Shopping', value:180.00, pct:21},
+        {name:'Groceries', value:130.00, pct:15},
+        {name:'Dining', value:110.00, pct:13},
+        {name:'Transport', value:92.00, pct:11},
+        {name:'Other', value:85.90, pct:11}
+      ]
+    },
+    month:{
+      rangeLabel:'this month', compareLabel:'vs last month', total:2340.15, deltaPct:5, deltaDir:'down',
+      min:{value:1.99, merchant:'Spotify'},
+      max:{value:680.00, merchant:'Apple Store', category:'Shopping', date:'14 Jul'},
+      chart:{labels:['Wk 1','Wk 2','Wk 3','Wk 4'], bars:[100,60,45,80], peak:0},
+      categories:[
+        {name:'Shopping', value:680.00, pct:29},
+        {name:'Groceries', value:520.00, pct:22},
+        {name:'Dining', value:410.00, pct:18},
+        {name:'Bills', value:340.00, pct:15},
+        {name:'Transport', value:210.00, pct:9},
+        {name:'Subscriptions', value:90.15, pct:4},
+        {name:'Other', value:90.00, pct:3}
+      ]
+    },
+    year:{
+      rangeLabel:'this year', compareLabel:'vs last year', total:18920.40, deltaPct:22, deltaDir:'up',
+      min:{value:1.50, merchant:'Parking meter'},
+      max:{value:1240.00, merchant:'Booking.com', category:'Travel', date:'3 Mar'},
+      chart:{labels:['Jan','Feb','Mar','Apr','May','Jun','Jul'], bars:[40,55,90,60,70,85,100], peak:6},
+      categories:[
+        {name:'Travel', value:5200.00, pct:28},
+        {name:'Shopping', value:3800.00, pct:20},
+        {name:'Groceries', value:3100.00, pct:16},
+        {name:'Bills', value:2900.00, pct:15},
+        {name:'Dining', value:2100.00, pct:11},
+        {name:'Transport', value:1200.00, pct:6},
+        {name:'Subscriptions', value:620.40, pct:4}
+      ]
+    },
+    all:{
+      rangeLabel:'all time', compareLabel:'Since Mar 2023', total:54310.82, deltaPct:null, deltaDir:'flat',
+      min:{value:0.99, merchant:'App Store'},
+      max:{value:2100.00, merchant:'MacBook Pro · Apple Store', category:'Shopping', date:'18 Nov 2024'},
+      chart:{labels:['2023','2024','2025','2026'], bars:[60,90,100,45], peak:2},
+      categories:[
+        {name:'Shopping', value:15200.00, pct:28},
+        {name:'Travel', value:12400.00, pct:23},
+        {name:'Groceries', value:9800.00, pct:18},
+        {name:'Bills', value:8900.00, pct:16},
+        {name:'Dining', value:5100.00, pct:9},
+        {name:'Transport', value:2910.82, pct:6}
+      ]
+    }
+  };
+
+  const PERIODS = [
+    {key:'day', label:'Day'},
+    {key:'week', label:'Week'},
+    {key:'month', label:'Month'},
+    {key:'year', label:'Year'},
+    {key:'all', label:'All'}
+  ];
+
+  let current = 'month';
+
+  function fmtMoney(n){
+    const parts = n.toFixed(2).split('.');
+    let intPart = parts[0].replace(/\B(?=(\d{3})+(?!\d))/g, ' ');
+    return intPart + '.' + parts[1] + ' €';
+  }
+
+  function icon(name){ return ICONS[name] || ICONS.dots; }
+  function catMeta(name){ return CAT_META[name] || CAT_META.Other; }
+  function hexA(hex, a){
+    const n = parseInt(hex.slice(1),16);
+    const r=(n>>16)&255, g=(n>>8)&255, b=n&255;
+    return `rgba(${r},${g},${b},${a})`;
+  }
+
+  function renderPeriodSelector(){
+    const wrap = root.querySelector('.period-selector');
+    wrap.innerHTML = PERIODS.map(p =>
+      `<button class="period-pill ${p.key===current?'active':''}" data-period="${p.key}" role="tab" aria-selected="${p.key===current}">${p.label}</button>`
+    ).join('');
+    wrap.querySelectorAll('.period-pill').forEach(btn=>{
+      btn.addEventListener('click', ()=>{ current = btn.dataset.period; render(); });
+    });
+  }
+
+  function render(){
+    const d = DATA[current];
+    renderPeriodSelector();
+
+    document.getElementById('heroLabel').textContent = 'Spent ' + d.rangeLabel;
+    document.getElementById('heroValue').textContent = fmtMoney(d.total);
+
+    const badge = document.getElementById('deltaBadge');
+    if(d.deltaPct === null){
+      badge.className = 'delta-badge flat';
+      badge.innerHTML = d.compareLabel;
+    } else {
+      badge.className = 'delta-badge ' + d.deltaDir;
+      const arrow = d.deltaDir === 'up'
+        ? '<svg viewBox="0 0 24 24" fill="none"><path d="M12 19V5M5 12l7-7 7 7" stroke="currentColor" stroke-width="2.4" stroke-linecap="round" stroke-linejoin="round"/></svg>'
+        : '<svg viewBox="0 0 24 24" fill="none"><path d="M12 5v14M19 12l-7 7-7-7" stroke="currentColor" stroke-width="2.4" stroke-linecap="round" stroke-linejoin="round"/></svg>';
+      badge.innerHTML = arrow + d.deltaPct + '% ' + d.compareLabel;
+    }
+
+    const barsEl = document.getElementById('chartBars');
+    barsEl.innerHTML = d.chart.bars.map((v,i)=>
+      `<div class="bar-col"><div class="bar ${i===d.chart.peak?'peak':''}" style="height:${v}%"></div></div>`
+    ).join('');
+    document.getElementById('chartLabels').innerHTML = d.chart.labels.map(l=>`<span>${l}</span>`).join('');
+    document.getElementById('chartCaption').innerHTML =
+      `Peak: <strong>${d.chart.labels[d.chart.peak]}</strong> — ${fmtMoney(d.max.value)} highest single spend`;
+
+    document.getElementById('minValue').textContent = fmtMoney(d.min.value);
+    document.getElementById('minMeta').textContent = d.min.merchant;
+    document.getElementById('maxValue').textContent = fmtMoney(d.max.value);
+    document.getElementById('maxMeta').textContent = d.max.merchant;
+
+    const cm = catMeta(d.max.category);
+    document.getElementById('purchaseCard').innerHTML = `
+      <div class="purchase-icon" style="background:${hexA(cm.color,.13)}; color:${cm.color}">
+        <svg viewBox="0 0 24 24" fill="none">${icon(cm.icon)}</svg>
+      </div>
+      <div class="purchase-info">
+        <div class="purchase-name">${d.max.merchant}</div>
+        <div class="purchase-meta">${d.max.category} · ${d.max.date}</div>
+      </div>
+      <div class="purchase-amount">${fmtMoney(d.max.value)}</div>
+    `;
+
+    document.getElementById('categoryList').innerHTML = d.categories.map(c=>{
+      const m = catMeta(c.name);
+      return `
+        <div class="cat-row">
+          <div class="cat-icon" style="background:${hexA(m.color,.13)}; color:${m.color}">
+            <svg viewBox="0 0 24 24" fill="none">${icon(m.icon)}</svg>
+          </div>
+          <div class="cat-info">
+            <div class="cat-top">
+              <span class="cat-name">${c.name}</span>
+              <span class="cat-amount">${fmtMoney(c.value)}</span>
+            </div>
+            <div class="cat-bar-track"><div class="cat-bar-fill" style="width:${c.pct}%; background:${m.color}"></div></div>
+          </div>
+        </div>
+      `;
+    }).join('');
+
+    const body = document.getElementById('statsBody');
+    body.classList.remove('fade'); void body.offsetWidth; body.classList.add('fade');
+  }
+
+  render();
+})();
+</script>
+<script>
+(function(){
+const root = document.getElementById('concept2-panel');
+  const ICONS = {
+    bag:'<path d="M6 7h12l1 13H5L6 7z" stroke="currentColor" stroke-width="1.7" stroke-linejoin="round"/><path d="M9 7a3 3 0 0 1 6 0" stroke="currentColor" stroke-width="1.7"/>',
+    plane:'<path d="M22 2L11 13" stroke="currentColor" stroke-width="1.7" stroke-linecap="round" stroke-linejoin="round"/><path d="M22 2l-7 20-4-9-9-4 20-7z" stroke="currentColor" stroke-width="1.7" stroke-linejoin="round"/>',
+    basket:'<path d="M4 9h16l-1.5 10a2 2 0 0 1-2 2h-9a2 2 0 0 1-2-2L4 9z" stroke="currentColor" stroke-width="1.7" stroke-linejoin="round"/><path d="M8 9V6a4 4 0 0 1 8 0v3" stroke="currentColor" stroke-width="1.7"/>',
+    cup:'<path d="M4 8h13v6a5 5 0 0 1-5 5H9a5 5 0 0 1-5-5V8z" stroke="currentColor" stroke-width="1.7" stroke-linejoin="round"/><path d="M17 9h1.5a2.5 2.5 0 0 1 0 5H17" stroke="currentColor" stroke-width="1.7"/>',
+    receipt:'<path d="M6 3h12v18l-3-2-3 2-3-2-3 2V3z" stroke="currentColor" stroke-width="1.7" stroke-linejoin="round"/><path d="M9 8h6M9 12h6" stroke="currentColor" stroke-width="1.7" stroke-linecap="round"/>',
+    car:'<path d="M4 16V9l2-4h12l2 4v7" stroke="currentColor" stroke-width="1.7" stroke-linejoin="round"/><path d="M4 16h16" stroke="currentColor" stroke-width="1.7"/><circle cx="7.5" cy="17.5" r="1.5" stroke="currentColor" stroke-width="1.5"/><circle cx="16.5" cy="17.5" r="1.5" stroke="currentColor" stroke-width="1.5"/>',
+    film:'<circle cx="12" cy="12" r="9" stroke="currentColor" stroke-width="1.7"/><path d="M10 8.5l6 3.5-6 3.5z" fill="currentColor" stroke="none"/>',
+    repeat:'<path d="M17 2l4 4-4 4" stroke="currentColor" stroke-width="1.7" stroke-linecap="round" stroke-linejoin="round"/><path d="M3 11V9a4 4 0 0 1 4-4h14" stroke="currentColor" stroke-width="1.7" stroke-linecap="round"/><path d="M7 22l-4-4 4-4" stroke="currentColor" stroke-width="1.7" stroke-linecap="round" stroke-linejoin="round"/><path d="M21 13v2a4 4 0 0 1-4 4H3" stroke="currentColor" stroke-width="1.7" stroke-linecap="round"/>',
+    dots:'<circle cx="5" cy="12" r="1.6" fill="currentColor"/><circle cx="12" cy="12" r="1.6" fill="currentColor"/><circle cx="19" cy="12" r="1.6" fill="currentColor"/>',
+    chartbar:'<path d="M5 20V11M12 20V4M19 20v-7" stroke="currentColor" stroke-width="1.8" stroke-linecap="round"/>',
+    trending:'<path d="M3 17l6-6 4 4 8-8" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"/><path d="M15 7h6v6" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"/>',
+    donut:'<path d="M12 2a10 10 0 1 0 10 10H12V2z" stroke="currentColor" stroke-width="1.7" stroke-linejoin="round"/><path d="M12 2A10 10 0 0 1 22 12" stroke="currentColor" stroke-width="1.7"/>',
+    card:'<rect x="2" y="5" width="20" height="14" rx="2.5" stroke="currentColor" stroke-width="1.7"/><path d="M2 10h20" stroke="currentColor" stroke-width="1.7"/>',
+    arrowUpRight:'<path d="M7 17L17 7M8 7h9v9" stroke="currentColor" stroke-width="1.7" stroke-linecap="round" stroke-linejoin="round"/>',
+    pencil:'<path d="M12 20h9" stroke="currentColor" stroke-width="1.7" stroke-linecap="round"/><path d="M16.5 3.5a2.1 2.1 0 0 1 3 3L7 19l-4 1 1-4L16.5 3.5z" stroke="currentColor" stroke-width="1.7" stroke-linejoin="round"/>',
+    eyeOff:'<path d="M3 3l18 18" stroke="currentColor" stroke-width="1.7" stroke-linecap="round"/><path d="M10.6 5.1A10.9 10.9 0 0 1 12 5c6 0 9.5 5.5 9.7 7-.4.9-1.1 2-2.1 3M6.5 6.6C4 8.1 2.5 10.2 2.3 11c.5 1.1 2.6 5 9.7 5 1 0 1.9-.1 2.7-.4" stroke="currentColor" stroke-width="1.7" stroke-linecap="round" stroke-linejoin="round"/><path d="M9.9 10a3 3 0 0 0 4.2 4.2" stroke="currentColor" stroke-width="1.7"/>',
+    snowflake:'<path d="M12 2v20M4.5 6l15 12M19.5 6l-15 12" stroke="currentColor" stroke-width="1.7" stroke-linecap="round"/>',
+    lock:'<rect x="5" y="10" width="14" height="10" rx="2" stroke="currentColor" stroke-width="1.7"/><path d="M8 10V7a4 4 0 0 1 8 0v3" stroke="currentColor" stroke-width="1.7"/>',
+    doc:'<path d="M7 2h7l5 5v15H7z" stroke="currentColor" stroke-width="1.7" stroke-linejoin="round"/><path d="M14 2v5h5" stroke="currentColor" stroke-width="1.7" stroke-linejoin="round"/>',
+    sliders:'<path d="M4 6h9M17 6h3M4 12h3M9 12h11M4 18h13M19 18h1" stroke="currentColor" stroke-width="1.7" stroke-linecap="round"/><circle cx="15" cy="6" r="2" stroke="currentColor" stroke-width="1.7"/><circle cx="7" cy="12" r="2" stroke="currentColor" stroke-width="1.7"/><circle cx="17" cy="18" r="2" stroke="currentColor" stroke-width="1.7"/>',
+    percent:'<circle cx="7" cy="7" r="2.2" stroke="currentColor" stroke-width="1.7"/><circle cx="17" cy="17" r="2.2" stroke="currentColor" stroke-width="1.7"/><path d="M18 6L6 18" stroke="currentColor" stroke-width="1.7" stroke-linecap="round"/>',
+    trash:'<path d="M4 7h16M9 7V4h6v3M6 7l1 14h10l1-14" stroke="currentColor" stroke-width="1.7" stroke-linecap="round" stroke-linejoin="round"/><path d="M10 11v6M14 11v6" stroke="currentColor" stroke-width="1.7" stroke-linecap="round"/>'
+  };
+  const CAT_META = {
+    'Shopping':{color:'#6c5ce7', icon:'bag'},
+    'Travel':{color:'#5b8def', icon:'plane'},
+    'Groceries':{color:'#2fbf9f', icon:'basket'},
+    'Dining':{color:'#ff6b6b', icon:'cup'},
+    'Bills':{color:'#64748b', icon:'receipt'},
+    'Transport':{color:'#00b4d8', icon:'car'},
+    'Entertainment':{color:'#f472b6', icon:'film'},
+    'Subscriptions':{color:'#ffb020', icon:'repeat'},
+    'Other':{color:'#b0b0b8', icon:'dots'}
+  };
+
+  const DATA = {
+    day:{
+      rangeLabel:'today', shortLabel:'Today', compareLabel:'vs yesterday', total:187.40, deltaPct:8, deltaDir:'up',
+      min:{value:3.20, merchant:'Costa Coffee'},
+      max:{value:120.00, merchant:'Zara', category:'Shopping', date:'Today, 15:42'},
+      chart:{labels:['6am','9am','12pm','3pm','6pm','9pm'], bars:[5,10,15,55,100,20], peak:4},
+      categories:[
+        {name:'Shopping', value:120.00, pct:64},
+        {name:'Dining', value:42.10, pct:22},
+        {name:'Transport', value:18.30, pct:10},
+        {name:'Other', value:7.00, pct:4}
+      ],
+      biggestList:[
+        {merchant:'Zara', value:120.00, date:'Today, 15:42', category:'Shopping'},
+        {merchant:'Lunch Bar', value:24.90, date:'Today, 13:10', category:'Dining'},
+        {merchant:'Uber', value:18.30, date:'Today, 08:15', category:'Transport'},
+        {merchant:'Costa Coffee', value:3.20, date:'Today, 07:50', category:'Dining'}
+      ]
+    },
+    week:{
+      rangeLabel:'this week', shortLabel:'This week', compareLabel:'vs last week', total:842.90, deltaPct:12, deltaDir:'up',
+      min:{value:2.50, merchant:'Vending machine'},
+      max:{value:245.00, merchant:'Delta Airlines', category:'Travel', date:'Tue, 09:12'},
+      chart:{labels:['Mon','Tue','Wed','Thu','Fri','Sat','Sun'], bars:[30,100,20,45,60,80,25], peak:1},
+      categories:[
+        {name:'Travel', value:245.00, pct:29},
+        {name:'Shopping', value:180.00, pct:21},
+        {name:'Groceries', value:130.00, pct:15},
+        {name:'Dining', value:110.00, pct:13},
+        {name:'Transport', value:92.00, pct:11},
+        {name:'Other', value:85.90, pct:11}
+      ],
+      biggestList:[
+        {merchant:'Delta Airlines', value:245.00, date:'Tue, 09:12', category:'Travel'},
+        {merchant:'Zara', value:120.00, date:'Wed, 16:20', category:'Shopping'},
+        {merchant:'Whole Foods', value:88.30, date:'Sat, 11:05', category:'Groceries'},
+        {merchant:'Cineplex', value:42.00, date:'Fri, 19:30', category:'Entertainment'},
+        {merchant:'Uber', value:31.50, date:'Mon, 08:40', category:'Transport'}
+      ]
+    },
+    month:{
+      rangeLabel:'this month', shortLabel:'This month', compareLabel:'vs last month', total:2340.15, deltaPct:5, deltaDir:'down',
+      min:{value:1.99, merchant:'Spotify'},
+      max:{value:680.00, merchant:'Apple Store', category:'Shopping', date:'14 Jul'},
+      chart:{labels:['Wk 1','Wk 2','Wk 3','Wk 4'], bars:[100,60,45,80], peak:0},
+      categories:[
+        {name:'Shopping', value:680.00, pct:29},
+        {name:'Groceries', value:520.00, pct:22},
+        {name:'Dining', value:410.00, pct:18},
+        {name:'Bills', value:340.00, pct:15},
+        {name:'Transport', value:210.00, pct:9},
+        {name:'Subscriptions', value:90.15, pct:4},
+        {name:'Other', value:90.00, pct:3}
+      ],
+      biggestList:[
+        {merchant:'Apple Store', value:680.00, date:'14 Jul', category:'Shopping'},
+        {merchant:'Landlord Transfer', value:340.00, date:'1 Jul', category:'Bills'},
+        {merchant:'Whole Foods', value:145.00, date:'21 Jul', category:'Groceries'},
+        {merchant:'The Ivy Restaurant', value:98.00, date:'9 Jul', category:'Dining'},
+        {merchant:'Uber', value:64.00, date:'27 Jul', category:'Transport'}
+      ]
+    },
+    year:{
+      rangeLabel:'this year', shortLabel:'This year', compareLabel:'vs last year', total:18920.40, deltaPct:22, deltaDir:'up',
+      min:{value:1.50, merchant:'Parking meter'},
+      max:{value:1240.00, merchant:'Booking.com', category:'Travel', date:'3 Mar'},
+      chart:{labels:['Jan','Feb','Mar','Apr','May','Jun','Jul'], bars:[40,55,90,60,70,85,100], peak:6},
+      categories:[
+        {name:'Travel', value:5200.00, pct:28},
+        {name:'Shopping', value:3800.00, pct:20},
+        {name:'Groceries', value:3100.00, pct:16},
+        {name:'Bills', value:2900.00, pct:15},
+        {name:'Dining', value:2100.00, pct:11},
+        {name:'Transport', value:1200.00, pct:6},
+        {name:'Subscriptions', value:620.40, pct:4}
+      ],
+      biggestList:[
+        {merchant:'Booking.com', value:1240.00, date:'3 Mar', category:'Travel'},
+        {merchant:'Apple Store', value:680.00, date:'14 Jul', category:'Shopping'},
+        {merchant:'Delta Airlines', value:590.00, date:'22 Jan', category:'Travel'},
+        {merchant:'IKEA', value:480.00, date:'10 May', category:'Shopping'},
+        {merchant:'The Ivy Restaurant', value:210.00, date:'9 Jul', category:'Dining'}
+      ]
+    },
+    all:{
+      rangeLabel:'all time', shortLabel:'All time', compareLabel:'Since Mar 2023', total:54310.82, deltaPct:null, deltaDir:'flat',
+      min:{value:0.99, merchant:'App Store'},
+      max:{value:2100.00, merchant:'MacBook Pro · Apple Store', category:'Shopping', date:'18 Nov 2024'},
+      chart:{labels:['2023','2024','2025','2026'], bars:[60,90,100,45], peak:2},
+      categories:[
+        {name:'Shopping', value:15200.00, pct:28},
+        {name:'Travel', value:12400.00, pct:23},
+        {name:'Groceries', value:9800.00, pct:18},
+        {name:'Bills', value:8900.00, pct:16},
+        {name:'Dining', value:5100.00, pct:9},
+        {name:'Transport', value:2910.82, pct:6}
+      ],
+      biggestList:[
+        {merchant:'MacBook Pro · Apple Store', value:2100.00, date:'18 Nov 2024', category:'Shopping'},
+        {merchant:'Booking.com', value:1240.00, date:'3 Mar 2026', category:'Travel'},
+        {merchant:'Delta Airlines', value:980.00, date:'5 Aug 2024', category:'Travel'},
+        {merchant:'IKEA', value:750.00, date:'2 Jun 2025', category:'Shopping'},
+        {merchant:'Auto Service Center', value:620.00, date:'14 Feb 2025', category:'Transport'}
+      ]
+    }
+  };
+
+  const PERIODS = [
+    {key:'day', label:'Day'}, {key:'week', label:'Week'}, {key:'month', label:'Month'},
+    {key:'year', label:'Year'}, {key:'all', label:'All'}
+  ];
+
+  let current = 'month';
+  const reduceMotion = window.matchMedia('(prefers-reduced-motion: reduce)').matches;
+
+  function fmtMoney(n){
+    const parts = n.toFixed(2).split('.');
+    let intPart = parts[0].replace(/\B(?=(\d{3})+(?!\d))/g, ' ');
+    return intPart + '.' + parts[1] + ' €';
+  }
+  function icon(name){ return ICONS[name] || ICONS.dots; }
+  function catMeta(name){ return CAT_META[name] || CAT_META.Other; }
+  function hexA(hex,a){ const n=parseInt(hex.slice(1),16); return `rgba(${(n>>16)&255},${(n>>8)&255},${n&255},${a})`; }
+
+  // populate static icons (menu rows, hub row circles)
+  root.querySelectorAll('[data-icon]').forEach(el=>{
+    const name = el.dataset.icon;
+    const svg = `<svg viewBox="0 0 24 24" fill="none">${icon(name)}</svg>`;
+    if(el.classList.contains('row-icon-circle')) el.innerHTML = svg;
+    else el.innerHTML = svg;
+  });
+
+  function renderPeriodPills(){
+    root.querySelectorAll('.period-selector').forEach(wrap=>{
+      wrap.innerHTML = PERIODS.map(p=>
+        `<button class="period-pill ${p.key===current?'active':''}" data-period="${p.key}">${p.label}</button>`
+      ).join('');
+      wrap.querySelectorAll('.period-pill').forEach(btn=>{
+        btn.addEventListener('click', ()=>{ current = btn.dataset.period; renderAll(); });
+      });
+    });
+  }
+
+  function renderHub(){
+    const d = DATA[current];
+    document.getElementById('hubSpendingMeta').textContent = fmtMoney(d.total);
+    document.getElementById('hubBiggestMeta').textContent = fmtMoney(d.max.value);
+    document.getElementById('hubCategoriesMeta').textContent = d.categories[0].name + ' · ' + d.categories[0].pct + '%';
+  }
+
+  function renderSpending(){
+    const d = DATA[current];
+    document.getElementById('sp-heroLabel').textContent = 'Spent ' + d.rangeLabel;
+    document.getElementById('sp-heroValue').textContent = fmtMoney(d.total);
+    const badge = document.getElementById('sp-deltaBadge');
+    if(d.deltaPct === null){
+      badge.className = 'delta-badge flat'; badge.innerHTML = d.compareLabel;
+    } else {
+      badge.className = 'delta-badge ' + d.deltaDir;
+      const arrow = d.deltaDir==='up'
+        ? '<svg viewBox="0 0 24 24" fill="none"><path d="M12 19V5M5 12l7-7 7 7" stroke="currentColor" stroke-width="2.4" stroke-linecap="round" stroke-linejoin="round"/></svg>'
+        : '<svg viewBox="0 0 24 24" fill="none"><path d="M12 5v14M19 12l-7 7-7-7" stroke="currentColor" stroke-width="2.4" stroke-linecap="round" stroke-linejoin="round"/></svg>';
+      badge.innerHTML = arrow + d.deltaPct + '% ' + d.compareLabel;
+    }
+    document.getElementById('sp-chartBars').innerHTML = d.chart.bars.map((v,i)=>
+      `<div class="bar-col"><div class="bar ${i===d.chart.peak?'peak':''}" style="height:${v}%"></div></div>`
+    ).join('');
+    document.getElementById('sp-chartLabels').innerHTML = d.chart.labels.map(l=>`<span>${l}</span>`).join('');
+    document.getElementById('sp-chartCaption').innerHTML = `Peak: <strong>${d.chart.labels[d.chart.peak]}</strong> — ${fmtMoney(d.max.value)} highest single spend`;
+    document.getElementById('sp-minValue').textContent = fmtMoney(d.min.value);
+    document.getElementById('sp-minMeta').textContent = d.min.merchant;
+    document.getElementById('sp-maxValue').textContent = fmtMoney(d.max.value);
+    document.getElementById('sp-maxMeta').textContent = d.max.merchant;
+  }
+
+  function renderBiggest(){
+    const d = DATA[current];
+    const cm = catMeta(d.max.category);
+    document.getElementById('bp-featured').innerHTML = `
+      <div class="purchase-icon" style="background:${hexA(cm.color,.13)}; color:${cm.color}"><svg viewBox="0 0 24 24" fill="none">${icon(cm.icon)}</svg></div>
+      <div class="purchase-info">
+        <div class="purchase-eyebrow">Biggest purchase · ${d.shortLabel}</div>
+        <div class="purchase-name">${d.max.merchant}</div>
+        <div class="purchase-meta">${d.max.category} · ${d.max.date}</div>
+      </div>
+      <div class="purchase-amount">${fmtMoney(d.max.value)}</div>
+    `;
+    document.getElementById('bp-rankList').innerHTML = d.biggestList.map((p,i)=>{
+      const m = catMeta(p.category);
+      return `
+        <div class="rank-row">
+          <div class="rank-badge">${i+1}</div>
+          <div class="rank-icon" style="background:${hexA(m.color,.13)}; color:${m.color}"><svg viewBox="0 0 24 24" fill="none">${icon(m.icon)}</svg></div>
+          <div class="rank-info"><div class="rank-name">${p.merchant}</div><div class="rank-meta">${p.category} · ${p.date}</div></div>
+          <div class="rank-amount">${fmtMoney(p.value)}</div>
+        </div>
+      `;
+    }).join('');
+  }
+
+  function renderCategories(){
+    const d = DATA[current];
+    document.getElementById('cat-donutLabel').textContent = d.shortLabel;
+    document.getElementById('cat-donutValue').textContent = fmtMoney(d.total);
+
+    const r = 50, cx=60, cy=60, C = 2*Math.PI*r;
+    let offset = 0;
+    let segs = '';
+    d.categories.forEach(c=>{
+      const m = catMeta(c.name);
+      const len = c.pct/100*C;
+      segs += `<circle cx="${cx}" cy="${cy}" r="${r}" fill="none" stroke="${m.color}" stroke-width="14" stroke-dasharray="${len} ${C-len}" stroke-dashoffset="${-offset}" transform="rotate(-90 ${cx} ${cy})" stroke-linecap="butt"/>`;
+      offset += len;
+    });
+    document.getElementById('cat-donut').innerHTML =
+      `<circle cx="${cx}" cy="${cy}" r="${r}" fill="none" stroke="var(--surface-2)" stroke-width="14"/>${segs}`;
+
+    document.getElementById('cat-legend').innerHTML = d.categories.slice(0,4).map(c=>{
+      const m = catMeta(c.name);
+      return `<div class="legend-item"><span class="legend-dot" style="background:${m.color}"></span><span class="legend-name">${c.name}</span><span class="legend-pct">${c.pct}%</span></div>`;
+    }).join('');
+
+    document.getElementById('cat-list').innerHTML = d.categories.map(c=>{
+      const m = catMeta(c.name);
+      return `
+        <div class="cat-row">
+          <div class="cat-icon" style="background:${hexA(m.color,.13)}; color:${m.color}"><svg viewBox="0 0 24 24" fill="none">${icon(m.icon)}</svg></div>
+          <div class="cat-info">
+            <div class="cat-top">
+              <span class="cat-name">${c.name}</span>
+              <span class="cat-values"><span class="cat-amount">${fmtMoney(c.value)}</span><span class="cat-pct">${c.pct}%</span></span>
+            </div>
+            <div class="cat-bar-track"><div class="cat-bar-fill" style="width:${c.pct}%; background:${m.color}"></div></div>
+          </div>
+        </div>
+      `;
+    }).join('');
+  }
+
+  function renderAll(){
+    renderPeriodPills();
+    renderHub();
+    renderSpending();
+    renderBiggest();
+    renderCategories();
+  }
+
+  function showScreen(id, dir){
+    const stack = document.getElementById('screenStack');
+    const from = stack.querySelector('.screen.active');
+    const to = document.getElementById(id);
+    if(from === to) return;
+    if(reduceMotion){
+      if(from) from.classList.remove('active');
+      to.classList.add('active');
+      to.style.transform = 'translateX(0)';
+      return;
+    }
+    to.style.transition = 'none';
+    to.style.transform = dir==='forward' ? 'translateX(100%)' : 'translateX(-100%)';
+    to.classList.add('active');
+    void to.offsetWidth;
+    to.style.transition = 'transform .32s cubic-bezier(.2,.8,.2,1)';
+    to.style.transform = 'translateX(0)';
+    if(from){
+      from.style.transition = 'transform .32s cubic-bezier(.2,.8,.2,1)';
+      from.style.transform = dir==='forward' ? 'translateX(-100%)' : 'translateX(100%)';
+      setTimeout(()=>{ from.classList.remove('active'); from.style.transition='none'; from.style.transform=''; }, 320);
+    }
+  }
+
+  document.getElementById('rowToStats').addEventListener('click', ()=>showScreen('screen-hub','forward'));
+  document.getElementById('rowToSpending').addEventListener('click', ()=>showScreen('screen-spending','forward'));
+  document.getElementById('rowToBiggest').addEventListener('click', ()=>showScreen('screen-biggest','forward'));
+  document.getElementById('rowToCategories').addEventListener('click', ()=>showScreen('screen-categories','forward'));
+  document.querySelectorAll('[data-back]').forEach(btn=>{
+    btn.addEventListener('click', ()=>showScreen(btn.dataset.back, 'back'));
+  });
+
+  renderAll();
+})();
+</script>
+<script>
+  document.querySelectorAll('.concept-tab').forEach(function(tab){
+    tab.addEventListener('click', function(){
+      document.querySelectorAll('.concept-tab').forEach(function(t){
+        t.classList.remove('active');
+        t.setAttribute('aria-selected','false');
+      });
+      tab.classList.add('active');
+      tab.setAttribute('aria-selected','true');
+      var n = tab.dataset.concept;
+      document.getElementById('concept1-panel').classList.toggle('active', n === '1');
+      document.getElementById('concept2-panel').classList.toggle('active', n === '2');
+    });
+  });
+</script>
+</body>
+</html>
